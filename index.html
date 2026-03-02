@@ -302,14 +302,14 @@
             font-style: italic;
         }
 
-        /* ========== HALAMAN 2 (SAMA) ========== */
+        /* ========== HALAMAN 2 ========== */
         .page2 {
             background: linear-gradient(145deg, #e6d5f0, #f0d9ff, #f0d0e8);
             background-size: 400% 400%;
             animation: softGradient 12s ease infinite;
         }
 
-        /* ========== HALAMAN 3 (SAMA) ========== */
+        /* ========== HALAMAN 3 ========== */
         .page3 {
             background: linear-gradient(145deg, #fde0d9, #ffe4e1, #fddde3);
             background-size: 400% 400%;
@@ -668,6 +668,42 @@
             100% { transform: translateY(-10vh) rotate(360deg); }
         }
 
+        /* Music button */
+        .music-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .music-btn.playing {
+            animation: musicPulse 2s infinite;
+        }
+
+        @keyframes musicPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 182, 193, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 182, 193, 0); }
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
             .soft-card { padding: 32px 20px; }
@@ -675,6 +711,7 @@
             .soft-text { font-size: 18px; }
             .soft-button { min-width: 220px; }
             .elegant-heart { font-size: 24px; }
+            .music-btn { width: 40px; height: 40px; font-size: 20px; }
         }
     </style>
 </head>
@@ -682,6 +719,9 @@
     <!-- Soft floating particles (dibuat via JS) -->
     <div id="floatingParticles"></div>
     <div id="softSparkles"></div>
+
+    <!-- Music Button -->
+    <div class="music-btn playing" id="musicBtn">🎵</div>
 
     <div class="pages">
         <!-- ========== HALAMAN 1 SOFT ELEGAN ========== -->
@@ -696,10 +736,10 @@
                 <div class="elegant-wave">👋</div>
                 
                 <!-- Soft title -->
-                <h1 class="soft-title">Hai Shella </h1>
+                <h1 class="soft-title">hai kamu</h1>
                 
                 <!-- Soft text -->
-                <p class="soft-text">aku ada sesuatu buat Shella </p>
+                <p class="soft-text">aku ada sesuatu buat kamu..</p>
                 
                 <!-- Elegant floating hearts -->
                 <div class="elegant-hearts">
@@ -840,11 +880,72 @@
     </div>
 
     <!-- Audio -->
-    <audio id="bgMusic" loop preload="auto" style="display: none;">
-        <source src="123.mp3" type="audio/mpeg">
+    <audio id="bgMusic" loop preload="auto">
+        <source src="1234.mp3" type="audio/mpeg">
     </audio>
 
     <script>
+        // ========== MUSIC CONTROL ==========
+        const audio = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        let audioStarted = false;
+        let isPlaying = false;
+
+        // Set volume rendah
+        audio.volume = 0.2;
+
+        // Fungsi play musik
+        function playMusic() {
+            audio.play()
+                .then(() => {
+                    audioStarted = true;
+                    isPlaying = true;
+                    musicBtn.classList.add('playing');
+                    musicBtn.innerHTML = '🔊';
+                })
+                .catch(e => console.log('Autoplay dicegah browser'));
+        }
+
+        // Coba play otomatis pas halaman dimuat
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                playMusic();
+            }, 500);
+        });
+
+        // Tombol musik diklik
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                musicBtn.classList.remove('playing');
+                musicBtn.innerHTML = '🔇';
+            } else {
+                audio.play()
+                    .then(() => {
+                        isPlaying = true;
+                        musicBtn.classList.add('playing');
+                        musicBtn.innerHTML = '🔊';
+                    })
+                    .catch(() => {});
+            }
+        });
+
+        // Fallback: play pas user pertama kali interaksi
+        document.body.addEventListener('touchstart', function playOnTouch() {
+            if (!audioStarted) {
+                playMusic();
+            }
+            document.body.removeEventListener('touchstart', playOnTouch);
+        }, { once: true });
+
+        document.body.addEventListener('click', function playOnClick() {
+            if (!audioStarted) {
+                playMusic();
+            }
+            document.body.removeEventListener('click', playOnClick);
+        }, { once: true });
+
         // ========== SOFT DECORATIONS ==========
         
         // Soft floating particles (❤️ yang sangat soft)
@@ -914,18 +1015,6 @@
         const curiosityPercent = document.getElementById('curiosityPercent');
         const curiousEmoji = document.getElementById('curiousEmoji');
 
-        // Audio
-        const audio = document.getElementById('bgMusic');
-        let audioStarted = false;
-
-        function playAudio() {
-            if (!audioStarted) {
-                audio.volume = 0.2;
-                audio.play().catch(() => {});
-                audioStarted = true;
-            }
-        }
-
         // Fun facts
         const funFacts = [
             "tahukah kamu? aku lagi nyiapin kejutan spesial...",
@@ -941,7 +1030,6 @@
         btnPage2.addEventListener('click', () => {
             page1.classList.remove('active');
             page2.classList.add('active');
-            playAudio();
 
             buttonWrapper.classList.add('hidden');
             loadingDots.classList.remove('hidden');
@@ -1101,4 +1189,3 @@
     </script>
 </body>
 </html>
-
